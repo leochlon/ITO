@@ -71,10 +71,10 @@ matching the variance of the guided noise to the “pure text” direction.
 
 ## 3. Quickstart
 
-Assuming your main file is called `ito_pipeline.py` and contains `ITOPipeline`:
+Import from `ITO` (this repo’s module file is `ITO.py`):
 
 ```python
-from ito_pipeline import ITOPipeline
+from ITO import ITOPipeline
 
 # Create the pipeline (loads SDXL weights)
 ito = ITOPipeline()
@@ -211,7 +211,7 @@ Use this to:
 ### 4.4 `make_grid(images, labels)`
 
 ```python
-from ito_pipeline import make_grid
+from ITO import make_grid
 
 grid = make_grid(
     images=[image_ito, image_fixed],
@@ -228,7 +228,7 @@ grid.save("comparison_grid.png")
 ## 5. Example: Comparing ITO vs Fixed CFG
 
 ```python
-from ito_pipeline import ITOPipeline, make_grid
+from ITO import ITOPipeline, make_grid
 
 ito = ITOPipeline()
 
