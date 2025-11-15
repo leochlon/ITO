@@ -4,14 +4,14 @@ This repo provides a thin, production‑oriented wrapper around
 [`StableDiffusionXLPipeline`](https://huggingface.co/docs/diffusers/api/pipelines/stable_diffusion/stable_diffusion_xl)
 that adds:
 
-- **Information-Theoretic Optimization (ITO) guidance**  
-  – adaptive per‑step guidance strength based on a **KL budget**
-- **Stable FP32 decoding**  
+- Information-Theoretic Optimization (ITO) guidance
+  – adaptive per‑step guidance strength based on a KL budget
+- Stable FP32 decoding
   – VAE runs in float32 with tiling/slicing to reduce NaNs and OOMs
-- **Standard SDXL path with fp32 decode**  
+- Standard SDXL path with fp32 decode
   – a `generate_fixed` helper for “vanilla” SDXL images
-- **Negative prompts & SDXL dual‑prompt support**
-- A small **`make_grid`** utility to tile images with labels
+- Negative prompts & SDXL dual‑prompt support
+- A small `make_grid` utility to tile images with labels
 
 The goal is to make it easy to A/B test ITO guidance vs. vanilla SDXL in a
 single, clean interface.
@@ -32,7 +32,7 @@ Example install:
 pip install torch diffusers transformers accelerate safetensors pillow numpy
 ```
 
-> ⚠️ Make sure your PyTorch build matches your CUDA version if you’re on GPU.
+> Make sure your PyTorch build matches your CUDA version if you’re on GPU.
 
 By default the pipeline loads:
 
@@ -45,26 +45,26 @@ You may need a Hugging Face token configured to download the model.
 ## 2. What is ITO guidance?
 
 Instead of using a fixed CFG scale (e.g. 7.5) for all diffusion steps,
-**ITO guidance**:
+ITO guidance:
 
-- Treats each diffusion step as spending part of a **KL budget**.
+- Treats each diffusion step as spending part of a KL budget.
 - Measures how different the conditional and unconditional noise predictions are.
-- Chooses a **per‑step guidance strength** `lambda_k` so that:
+- Chooses a per‑step guidance strength `lambda_k` so that:
 
-  \[
-  \sum_k rac{1}{2} \lambda_k^2 q_k pprox 	ext{budget}
-  \]
+$$
+\sum_k \tfrac{1}{2} \lambda_k^2 q_k \approx \text{budget}
+$$
 
-  where `q_k` is a scalar measure of how strong the text signal is at step `k`.
+where `q_k` is a scalar measure of how strong the text signal is at step `k`.
 
 This means:
 
-- **Early steps** (high noise, strong text signal) tend to get **higher λ**.
-- **Later steps** (low noise, weaker text signal) tend to get **lower λ**.
+- Early steps (high noise, strong text signal) tend to get higher λ.
+- Later steps (low noise, weaker text signal) tend to get lower λ.
 - You control how “hard” the model is pushed overall via a single `budget`
   (instead of guessing a fixed CFG scale).
 
-On top of that, there’s an **`alpha` soft-rescale** that stabilizes guidance by
+On top of that, there’s an `alpha` soft‑rescale that stabilizes guidance by
 matching the variance of the guided noise to the “pure text” direction.
 
 ---
@@ -128,8 +128,8 @@ What happens under the hood:
 - Loads `StableDiffusionXLPipeline.from_pretrained(model_id, ...)`
   - Uses `torch.float16` on GPU / MPS, `torch.float32` on CPU
   - Enables `safetensors`
-- Replaces the scheduler with **DPM-Solver++ (Karras sigmas)**.
-- Moves the **VAE to float32** and enables:
+- Replaces the scheduler with DPM-Solver++ (Karras sigmas).
+- Moves the VAE to float32 and enables:
   - `enable_vae_tiling()`
   - `enable_vae_slicing()`
 - Enables TF32 matmul on CUDA for a performance/precision sweet spot.
@@ -156,7 +156,7 @@ image, total_kl, lambdas = ito.generate_ito(
 )
 ```
 
-**Key parameters:**
+Key parameters:
 
 - `prompt`: main SDXL text prompt.
 - `prompt_2`: optional second SDXL text encoder prompt (e.g. style / extra info).
@@ -171,7 +171,7 @@ image, total_kl, lambdas = ito.generate_ito(
 - `seed`: for reproducibility.
 - `verbose`: print per‑10‑step stats, final KL and latent/decoded stats.
 
-**Returns:**
+Returns:
 
 - `image` — `PIL.Image.Image`, decoded from fp32 VAE.
 - `total_kl` — accumulated KL usage, approx. `<= budget`.
@@ -195,10 +195,10 @@ image = ito.generate_fixed(
 )
 ```
 
-This is a convenience wrapper for **standard SDXL generation**, but:
+This is a convenience wrapper for standard SDXL generation, but:
 
-- Asks diffusers to output **latents** (`output_type="latent"`).
-- Decodes those latents using the **fp32 VAE** in this pipeline.
+- Asks diffusers to output latents (`output_type="latent"`).
+- Decodes those latents using the fp32 VAE in this pipeline.
 - Clamps VAE output to `[-1, 1]` and runs `image_processor` to get a PIL image.
 
 Use this to:
@@ -269,14 +269,14 @@ grid.save("ito_vs_cfg.png")
 
 ## 6. Tips & Notes
 
-- **GPU strongly recommended.** SDXL at 1024×1024 on CPU is extremely slow.
-- If you hit **NaNs / infs** in latents, the code already:
+- GPU strongly recommended. SDXL at 1024×1024 on CPU is extremely slow.
+- If you hit NaNs / infs in latents, the code already:
   - Detects non‑finite values.
   - Sanitizes them with `torch.nan_to_num`.
-- If you get **OOMs**, try:
+- If you get OOMs, try:
   - Lowering `height`/`width` (e.g. to 768×768).
   - Reducing `num_steps`.
-- `budget`, `lambda_max`, and `alpha` are meant to be **tunable knobs**:
+- `budget`, `lambda_max`, and `alpha` are meant to be tunable knobs:
   - Start with `budget=30–50`, `lambda_max=7.5`, `alpha=0.3`.
   - Increase `budget` for more “locked‑in” prompt adherence (at risk of artifacts).
   - Increase `alpha` for more stability / less aggressive guidance.
@@ -285,7 +285,7 @@ grid.save("ito_vs_cfg.png")
 
 ## 7. License / Attribution
 
-This repo **wraps** the `StableDiffusionXLPipeline` and SDXL model weights
+This repo wraps the `StableDiffusionXLPipeline` and SDXL model weights
 provided by Stability AI via Hugging Face. Please make sure your usage complies
 with:
 
@@ -294,3 +294,4 @@ with:
 
 The code in this repo can be used and modified under whatever license you attach
 to it (fill this section in as appropriate for your project).
+
