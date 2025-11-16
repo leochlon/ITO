@@ -9,12 +9,12 @@ This script demonstrates:
 
 Usage:
     source .venv/bin/activate
-    python test_cabin.py --prompt "your prompt here"
+    python generate.py --prompt "your prompt here"
 
 Examples:
-    python test_cabin.py --prompt "a cozy cabin in a snowy forest"
-    python test_cabin.py --prompt "a futuristic city" --steps 50 --seed 123
-    python test_cabin.py --prompt "a serene lake" --output lake --budget 50
+    python generate.py --prompt "a cozy cabin in a snowy forest"
+    python generate.py --prompt "a futuristic city" --steps 50 --seed 123
+    python generate.py --prompt "a serene lake" --output lake --budget 50
 """
 
 import argparse
