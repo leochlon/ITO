@@ -113,9 +113,64 @@ You can then compare `cabin_ito.png` vs `cabin_fixed.png`.
 
 ---
 
-## 4. ITOPipeline API
+## 4. Command-Line Interface
 
-### 4.1 Initialization
+For quick experimentation, use the included `generate.py` script:
+
+### Basic usage
+
+```bash
+# Generate with a custom prompt
+python generate.py --prompt "a futuristic city at sunset"
+
+# Quick generation without baseline comparison
+python generate.py -p "a serene lake" --no-comparison
+
+# Full control over parameters
+python generate.py \
+  --prompt "a majestic dragon" \
+  --output dragon \
+  --steps 50 \
+  --seed 123 \
+  --budget 50 \
+  --lambda-max 8.0
+```
+
+### All available options
+
+```bash
+python generate.py --help
+```
+
+| Option | Short | Default | Description |
+|--------|-------|---------|-------------|
+| `--prompt` | `-p` | cabin example | Main prompt for image generation |
+| `--negative` | `-n` | quality negatives | Negative prompt |
+| `--output` | `-o` | `output` | Output filename prefix (without .png) |
+| `--seed` | | `42` | Random seed for reproducibility |
+| `--steps` | | `40` | Number of denoising steps |
+| `--height` | | `1024` | Image height in pixels |
+| `--width` | | `1024` | Image width in pixels |
+| `--budget` | | `40.0` | KL divergence budget for ITO |
+| `--lambda-max` | | `7.5` | Maximum guidance scale |
+| `--alpha` | | `0.3` | Alpha parameter for ITO scheduling |
+| `--cfg` | | `7.5` | Fixed CFG value for baseline comparison |
+| `--no-comparison` | | `False` | Skip baseline generation (faster) |
+
+### Output files
+
+By default, the script generates three files:
+- `{output}_ito.png` — ITO-guided image
+- `{output}_fixed.png` — Baseline with fixed CFG
+- `{output}_comparison.png` — Side-by-side comparison grid
+
+Use `--no-comparison` to generate only the ITO image.
+
+---
+
+## 5. ITOPipeline API
+
+### 5.1 Initialization
 
 ```python
 ito = ITOPipeline(
@@ -137,7 +192,7 @@ What happens under the hood:
 
 ---
 
-### 4.2 `generate_ito(...)`
+### 5.2 `generate_ito(...)`
 
 ```python
 image, total_kl, lambdas = ito.generate_ito(
@@ -179,7 +234,7 @@ Returns:
 
 ---
 
-### 4.3 `generate_fixed(...)`
+### 5.3 `generate_fixed(...)`
 
 ```python
 image = ito.generate_fixed(
@@ -208,7 +263,7 @@ Use this to:
 
 ---
 
-### 4.4 `make_grid(images, labels)`
+### 5.4 `make_grid(images, labels)`
 
 ```python
 from ITO import make_grid
@@ -225,7 +280,7 @@ grid.save("comparison_grid.png")
 
 ---
 
-## 5. Example: Comparing ITO vs Fixed CFG
+## 6. Example: Comparing ITO vs Fixed CFG
 
 ```python
 from ITO import ITOPipeline, make_grid
@@ -267,7 +322,7 @@ grid.save("ito_vs_cfg.png")
 
 ---
 
-## 6. Tips & Notes
+## 7. Tips & Notes
 
 - GPU strongly recommended. SDXL at 1024×1024 on CPU is extremely slow.
 - If you hit NaNs / infs in latents, the code already:
@@ -283,7 +338,7 @@ grid.save("ito_vs_cfg.png")
 
 ---
 
-## 7. License / Attribution
+## 8. License / Attribution
 
 This repo wraps the `StableDiffusionXLPipeline` and SDXL model weights
 provided by Stability AI via Hugging Face. Please make sure your usage complies
