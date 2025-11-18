@@ -4,7 +4,6 @@ from diffusers import StableDiffusionXLPipeline
 from PIL import Image, ImageDraw
 from typing import List, Tuple, Optional
 
-
 class ITOPipeline:
     """
     SDXL pipeline with Information-Theoretic Optimization (ITO) style guidance.
@@ -376,5 +375,33 @@ def make_grid(images: List[Image.Image], labels: List[str]) -> Image.Image:
 
 
 if __name__ == "__main__":
-    # Convenience instance when running as a script/notebook
+
     ito = ITOPipeline()
+    prompt = "a photo of an astronaut riding a horse on mars"
+    negative_prompt = "blurry, low resolution, ugly"
+
+    # Generate with ITO guidance
+    image_ito, total_kl, lambdas = ito.generate_ito(
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        budget=40.0,
+        lambda_max=7.5,
+        num_steps=40,
+        seed=42,
+        verbose=False,
+    )
+
+    # Generate with fixed guidance
+    image_fixed = ito.generate_fixed(
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        guidance_scale=7.5,
+        num_steps=40,
+        seed=42,
+    )
+
+    # Create a grid to display both images
+    grid_image = make_grid([image_fixed,image_ito], labels=["Fixed Guidance","ITO Guided"])
+
+    # Display the grid image
+    display(grid_image)
