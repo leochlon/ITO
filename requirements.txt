@@ -1,0 +1,11 @@
+torch==2.2.2
+torchvision==0.17.2
+torchaudio==2.2.2
+diffusers
+transformers
+accelerate
+safetensors
+pillow
+numpy<2.0
+gradio
+urllib3<2.0
